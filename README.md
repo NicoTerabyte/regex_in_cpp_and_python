@@ -47,8 +47,19 @@ Bisogna caapire se ogni pattern e' fissa quindi "nome." con possibilità di esse
 perché se no semplicemente rischiamo che se arriva un dato con la virgola all'inizio rompe il codice
 tipo "test,member.uttutuut" se c'è "test," la pattern estrapolata non funziona. Ma va bene anche cosi'
 
+## il problema delle regex NFA =! DFA
+
+Ci sono Non-deterministic Finite Automation e Deterministic Finite Automation
+
+* il primo è una pattern casuale che prova ad indovinare una pattern possibile che coincida con quella richiesta finché non raggiunge il risultato (std::regex pare lavorare così)
+* Il secondo è l'opposto, il "guesser" sa precisamente quali step prendere per raggiungere il risultato finale.
+
+
+## Python libraries to wrap c++ code 🖥️
+
+cython mmm, penso sia l'unica opzione, bisogna creare una libreria che wrappa il codice C++,
+necessitiamo di una libreria.
+
 ## todo for next tasks ✍️
 
-* talk about smatch var
-* revision of code, can it be shortened?
 * doing wrapping for python
