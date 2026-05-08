@@ -14,5 +14,14 @@ int main() {
         std::cout << "Nome utente (Gruppo 1): " << matches[1] << std::endl;
         std::cout << "Dominio (Gruppo 2): " << matches[2] << std::endl;
     }
+
+    std::cout<<"my regex starts now"<<std::endl;
+    std::smatch	found;
+	std::string	word_to_check = "pippone57";
+	std::regex	pattern2 = std::regex(R"(one\d+)");
+
+	if (regex_search(word_to_check, found, pattern2))
+		std::cout<<"found match "<<found[0]<<std::endl;
+
     return 0;
 }

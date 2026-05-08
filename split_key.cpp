@@ -4,7 +4,6 @@
 #include <regex>
 #include <stdio.h>
 #include <string>
-#include <regex>
 #include <unordered_map>
 #include <vector>
 #include <unordered_map>
@@ -25,11 +24,6 @@ const regex	REGEX_VECTOR = regex(R"(^(\w+)\.element\((\d*?)\)\.*)");
 const regex	REGEX_ARRAY = regex(R"(^(\w+)\((\d*?)\)\.*)");
 
 
-void	print_regex_vals()
-{
-	//TODO
-}
-
 void	build_dict(smatch found_match_array, vector<unordered_map<string, string>> &detailed_matches)
 {
 	unordered_map<string, string>	tmp_val;
@@ -44,10 +38,7 @@ void	build_dict(smatch found_match_array, vector<unordered_map<string, string>> 
 
 vector<unordered_map<string, string>> find_match_for_regex(string world_to_check, vector<regex> list_of_regex)
 {
-	// vector<string>							matches_vec;
-
 	vector<unordered_map<string, string>>	detailed_matches;
-
 	try
 	{
 		// t_regex_list	regex_types;
@@ -55,6 +46,7 @@ vector<unordered_map<string, string>> find_match_for_regex(string world_to_check
 		smatch	found;
 		string	tmp_world_check = world_to_check;
 
+		// check if the string is empty
 		while (!tmp_world_check.empty())
 		{
 			bool	match_loop = false;
@@ -65,7 +57,7 @@ vector<unordered_map<string, string>> find_match_for_regex(string world_to_check
 				{
 					cout<<"found full match with "<<found[0]<<" first element "<<found[1]<<endl;
 					if (found.size() > 2)
-						cout<<"don't forget "<<found[2]<<endl;
+						cout<<"it has an index"<<found[2]<<endl;
 					build_dict(found, detailed_matches);
 					tmp_world_check.erase(0, found[0].length());
 					match_loop = true;
@@ -89,7 +81,7 @@ vector<unordered_map<string, string>> find_match_for_regex(string world_to_check
 
 int main(void)
 {
-	string string_for_regex = "member.submember(2).subsubmember.element(4).finalmember";
+	string string_for_regex = "lacaca,member.submember(2).subsubmember.element(4).finalmember";
 	vector<regex>	list_of_regex = {REGEX_VECTOR, REGEX_ARRAY, REGEX_STRUCT};
 	vector<unordered_map<string, string>>	pattern_found;
 	pattern_found = find_match_for_regex(string_for_regex, list_of_regex);
