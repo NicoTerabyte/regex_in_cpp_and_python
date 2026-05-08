@@ -1,24 +1,9 @@
-#include <cstddef>
-#include <iostream>
-#include <ostream>
-#include <regex>
-#include <stdio.h>
-#include <string>
-#include <unordered_map>
-#include <vector>
-#include <unordered_map>
-
-using namespace std;
+#include "split_key.hpp"
 
 //! ?p<group> NON ESISTE IN C++
 
-// typedef struct s_regex_list
-// {
-		// const regex	REGEX_STRUCT = regex(R"(^(\w+)\.*)");
-		// const regex	REGEX_VECTOR = regex(R"(^(\w+)\.element\((\d*?)\)\.*)");
-		// const regex	REGEX_ARRAY = regex(R"(^(\w+)\((\d*?)\)\.*)");
-// } t_regex_list;
 
+//TODO if possible, put this in .hpp
 const regex	REGEX_STRUCT = regex(R"(^(\w+)\.*)");
 const regex	REGEX_VECTOR = regex(R"(^(\w+)\.element\((\d*?)\)\.*)");
 const regex	REGEX_ARRAY = regex(R"(^(\w+)\((\d*?)\)\.*)");
@@ -41,8 +26,6 @@ vector<unordered_map<string, string>> find_match_for_regex(string world_to_check
 	vector<unordered_map<string, string>>	detailed_matches;
 	try
 	{
-		// t_regex_list	regex_types;
-		//smatch servirà per avere i risultati dei match
 		smatch	found;
 		string	tmp_world_check = world_to_check;
 

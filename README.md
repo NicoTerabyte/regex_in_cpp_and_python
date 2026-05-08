@@ -54,11 +54,16 @@ Ci sono Non-deterministic Finite Automation e Deterministic Finite Automation
 * il primo è una pattern casuale che prova ad indovinare una pattern possibile che coincida con quella richiesta finché non raggiunge il risultato (std::regex pare lavorare così)
 * Il secondo è l'opposto, il "guesser" sa precisamente quali step prendere per raggiungere il risultato finale.
 
-
 ## Python libraries to wrap c++ code 🖥️
 
 cython mmm, penso sia l'unica opzione, bisogna creare una libreria che wrappa il codice C++,
 necessitiamo di una libreria.
+Consiglia di utilizzare come regex re2 di google, presa e messa in locale. C++ lavora con delle flag quando compila del codice, per linkare le librerie .so:
+
+* -L specifica la cartella dove si trova la libreria
+* -l per la libreria
+
+quando usi le flag rimuovi il suffisso "lib" e ".so" quindi libre2.so diventa re2.
 
 ## todo for next tasks ✍️
 
