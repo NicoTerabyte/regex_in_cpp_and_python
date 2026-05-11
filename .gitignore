@@ -3,4 +3,4 @@ libre2.so
 .exec
 regex++
 build
-.so
+*.so
