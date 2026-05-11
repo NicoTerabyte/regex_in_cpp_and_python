@@ -1,4 +1,6 @@
 libre2.so
 .vscode
 .exec
-
+regex++
+build
+.cpython*

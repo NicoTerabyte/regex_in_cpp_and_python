@@ -13,6 +13,11 @@ compilare con:
 g++ -Wall -Wextra -Werror -g -fconcepts -lre2 file.cpp -o regex++
 ```
 
+per usare cython come bridge per il codice
+```bash
+python setup.py build_ext --inplace
+```
+
 ```cpp
 #include <regex>
 

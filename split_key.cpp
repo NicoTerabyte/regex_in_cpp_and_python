@@ -28,11 +28,11 @@ void	build_dict(string &struct_var, string &index_var, vector<unordered_map<stri
 }
 
 
-vector<unordered_map<string, string>> find_match_for_regex(string world_to_check)
+vector<unordered_map<string, string>> find_match_for_regex(string word_to_check)
 {
 	vector<unordered_map<string, string>>	detailed_matches;
 	//? a special light string
-	re2::StringPiece	tmp_world_check(world_to_check);
+	re2::StringPiece	tmp_world_check(word_to_check);
 
 	try
 	{
@@ -74,26 +74,26 @@ vector<unordered_map<string, string>> find_match_for_regex(string world_to_check
 }
 
 
-int main(void)
-{
-	string string_for_regex = "member.submember(2).subsubmember.element(4).finalmember";
-	// vector<re2::RE2>	list_of_regex = {REGEX_VECTOR, REGEX_ARRAY, REGEX_STRUCT};
-	vector<unordered_map<string, string>>	pattern_found;
-	pattern_found = find_match_for_regex(string_for_regex);
+// int main(void)
+// {
+// 	string string_for_regex = "member.submember(2).subsubmember.element(4).finalmember";
+// 	// vector<re2::RE2>	list_of_regex = {REGEX_VECTOR, REGEX_ARRAY, REGEX_STRUCT};
+// 	vector<unordered_map<string, string>>	pattern_found;
+// 	pattern_found = find_match_for_regex(string_for_regex);
 
-	cout<<"retrieved data ["<<endl;
-	for (size_t i = 0; i < pattern_found.size(); i++)
-	{
-		cout<<"of cell "<<i<<" i print this dict:\n{";
-		for (auto it = pattern_found[i].begin(); it != pattern_found[i].end(); it++)
-		{
-			cout<<"first key: "<<it->first<<" value: \""<<it->second<<"\" ";
-		}
-		cout<<"}"<<endl;
-	}
-	cout<<"]"<<endl;
-	return (0);
-}
+// 	cout<<"retrieved data ["<<endl;
+// 	for (size_t i = 0; i < pattern_found.size(); i++)
+// 	{
+// 		cout<<"of cell "<<i<<" i print this dict:\n{";
+// 		for (auto it = pattern_found[i].begin(); it != pattern_found[i].end(); it++)
+// 		{
+// 			cout<<"first key: "<<it->first<<" value: \""<<it->second<<"\" ";
+// 		}
+// 		cout<<"}"<<endl;
+// 	}
+// 	cout<<"]"<<endl;
+// 	return (0);
+// }
 
 
 
