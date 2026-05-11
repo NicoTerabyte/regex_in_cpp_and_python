@@ -1,4 +1,4 @@
-# the header for the cython code
+# the header for the cython cod
 
 from libcpp.string cimport string
 from libcpp.vector cimport vector
