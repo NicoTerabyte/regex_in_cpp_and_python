@@ -12,6 +12,7 @@
 #include <vector>
 #include <unordered_map>
 #include <re2/re2.h>
+#include <re2/stringpiece.h>
 
 using namespace std;
 void	build_dict(smatch found_match_array, vector<unordered_map<string, string>> &detailed_matches);

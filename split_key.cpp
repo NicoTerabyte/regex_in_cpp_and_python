@@ -4,52 +4,63 @@
 
 
 //TODO if possible, put this in .hpp
-const regex	REGEX_STRUCT = regex(R"(^(\w+)\.*)");
-const regex	REGEX_VECTOR = regex(R"(^(\w+)\.element\((\d*?)\)\.*)");
-const regex	REGEX_ARRAY = regex(R"(^(\w+)\((\d*?)\)\.*)");
+// OLD code
+// const regex	REGEX_STRUCT = regex(R"(^(\w+)\.*)");
+// const regex	REGEX_VECTOR = regex(R"(^(\w+)\.element\((\d*?)\)\.*)");
+// const regex	REGEX_ARRAY = regex(R"(^(\w+)\((\d*?)\)\.*)");
 
+const re2::RE2 REGEX_STRUCT(R"(^(\w+)\.*)");
+const re2::RE2 REGEX_VECTOR(R"(^(\w+)\.element\((\d*?)\)\.*)");
+const re2::RE2 REGEX_ARRAY(R"(^(\w+)\((\d*?)\)\.*)");
 
-void	build_dict(smatch found_match_array, vector<unordered_map<string, string>> &detailed_matches)
+//ok
+void	build_dict(string &struct_var, string &index_var, vector<unordered_map<string, string>> &detailed_matches)
 {
 	unordered_map<string, string>	tmp_val;
+	//to redo with RE regex
 
-	tmp_val.insert({"struct", found_match_array[1]});
-	if (found_match_array.size() > 2)
-		tmp_val.insert({"index", found_match_array[2]});
+	tmp_val.insert({"struct", struct_var});
+	if (!index_var.empty())
+		tmp_val.insert({"index", index_var});
+
 
 	detailed_matches.push_back(tmp_val);
 }
 
 
-vector<unordered_map<string, string>> find_match_for_regex(string world_to_check, vector<regex> list_of_regex)
+vector<unordered_map<string, string>> find_match_for_regex(string world_to_check)
 {
 	vector<unordered_map<string, string>>	detailed_matches;
+	//? a special light string
+	re2::StringPiece	tmp_world_check(world_to_check);
+
 	try
 	{
-		smatch	found;
-		string	tmp_world_check = world_to_check;
 
 		// check if the string is empty
 		while (!tmp_world_check.empty())
 		{
-			bool	match_loop = false;
+			string	struct_var;
+			string	index_var;
 
-			for (size_t i = 0; i < list_of_regex.size(); i++)
+			if ((RE2::Consume(&tmp_world_check, REGEX_VECTOR, &struct_var, &index_var)))
 			{
-				if (regex_search(tmp_world_check, found, list_of_regex[i]))
-				{
-					cout<<"found full match with "<<found[0]<<" first element "<<found[1]<<endl;
-					if (found.size() > 2)
-						cout<<"it has an index"<<found[2]<<endl;
-					build_dict(found, detailed_matches);
-					tmp_world_check.erase(0, found[0].length());
-					match_loop = true;
-					break;
-				}
+				cout<<"Found vector pattern"<<endl;
+				build_dict(struct_var, index_var, detailed_matches);
 			}
-			if (match_loop != true)
+			else if ((RE2::Consume(&tmp_world_check, REGEX_ARRAY, &struct_var, &index_var)))
 			{
-				cout<<"no match found from string: "<<tmp_world_check<<endl;
+				cout<<"Found array pattern"<<endl;
+				build_dict(struct_var, index_var, detailed_matches);
+			}
+			else if ((RE2::Consume(&tmp_world_check, REGEX_STRUCT, &struct_var)))
+			{
+				cout<<"Found struct pattern"<<endl;
+				build_dict(struct_var, index_var, detailed_matches);
+			}
+			else
+			{
+				cout<<"no match found exiting"<<endl;
 				break;
 			}
 		}
@@ -64,10 +75,10 @@ vector<unordered_map<string, string>> find_match_for_regex(string world_to_check
 
 int main(void)
 {
-	string string_for_regex = "lacaca,member.submember(2).subsubmember.element(4).finalmember";
-	vector<regex>	list_of_regex = {REGEX_VECTOR, REGEX_ARRAY, REGEX_STRUCT};
+	string string_for_regex = "member.submember(2).subsubmember.element(4).finalmember";
+	// vector<re2::RE2>	list_of_regex = {REGEX_VECTOR, REGEX_ARRAY, REGEX_STRUCT};
 	vector<unordered_map<string, string>>	pattern_found;
-	pattern_found = find_match_for_regex(string_for_regex, list_of_regex);
+	pattern_found = find_match_for_regex(string_for_regex);
 
 	cout<<"retrieved data ["<<endl;
 	for (size_t i = 0; i < pattern_found.size(); i++)
