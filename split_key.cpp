@@ -42,7 +42,8 @@ vector<unordered_map<string, string>> find_match_for_regex(string world_to_check
 		{
 			string	struct_var;
 			string	index_var;
-
+			// for clarity
+			string	empty_index = "";
 			if ((RE2::Consume(&tmp_world_check, REGEX_VECTOR, &struct_var, &index_var)))
 			{
 				cout<<"Found vector pattern"<<endl;
@@ -56,7 +57,7 @@ vector<unordered_map<string, string>> find_match_for_regex(string world_to_check
 			else if ((RE2::Consume(&tmp_world_check, REGEX_STRUCT, &struct_var)))
 			{
 				cout<<"Found struct pattern"<<endl;
-				build_dict(struct_var, index_var, detailed_matches);
+				build_dict(struct_var, empty_index, detailed_matches);
 			}
 			else
 			{
