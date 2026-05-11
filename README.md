@@ -192,3 +192,18 @@ file.py ---> prende da file.pyx ----- prende da file.cpp
 ## todo for next tasks ✍️
 
 * readme review 😨
+
+## precisazioni
+
+Se vuoi compilare e usare lo standard c++11 devi cambiare e setup.py che utilizza di default quello che trova sulla macchina
+
+```python
+ext = Extension(
+    name="my_wrapper",
+    sources=["my_wrapper.pyx", "split_key.cpp"],
+    language="c++",
+    libraries=["re2"],
+    library_dirs=["."],
+    extra_compile_args=["-std=c++11"], # Forza lo standard C++11
+)
+```
