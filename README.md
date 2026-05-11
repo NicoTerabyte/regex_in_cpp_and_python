@@ -27,7 +27,7 @@ int main(void)
 {
 	//regex che nella pattern vuole un numero
 	//seguito da un punto e subito dopo dei caratteri
-	std::regex pattern = std::regex (R"(\d).(\w+))")
+	std::regex pattern = std::regex (R"((\d).(\w+))")
 
 }
 ```
@@ -51,7 +51,7 @@ int main(void)
 }
 ```
 
-una piccola cosa, se utilizziamo una Raw string dobbiamo definire dei delimitatori insomma qualcosa all'inizio e alla fine della stringa, essa **NON VIENE PRESA** in considerazione dall regex pattern quindi non c'è bisogno di preoccuparsi. come vedi infatti nelle regex che ho dichiarato ho messo le due parantesi tonde (), loro sono i delimitatori che dicono al computer da dove inizia la regex.
+una piccola cosa, se utilizziamo una Raw string dobbiamo definire dei delimitatori insomma qualcosa all'inizio e alla fine della stringa, essa **NON VIENE PRESA** in considerazione dall regex pattern quindi non c'è bisogno di preoccuparsi. come vedi infatti nelle regex che ho dichiarato ho messo le due parantesi tonde (), loro sono i delimitatori che dicono al computer da inizia la raw string al cui interno inserisco la regex.
 
 ## Problemi nel debugging
 
@@ -69,7 +69,7 @@ Ci sono Non-deterministic Finite Automation e Deterministic Finite Automation
 la classe regex utilizzano essenzialmente un algoritmo che si affida ad una caratteristica chiamata backtracking, un tratto in comune che ha con il NFA. Esso prende vari percorsi per definire la pattern ricercata, la stringa in questo caso, un carattere alla volta. Questo cercare a caso però ha i suoi costi, nel caso della classe regex **ogni volta** che all'interno di una stringa richiesta il carattere trovato NON corrisponde, il  ricercatore deve tornare indietro e provare un'altra pattern di quelle proposte per la ricerca, questo fenomeno è chiamato "disatrous backtracking" disastroso perché comporta una perdita di tempo incredibile per il computer.
 
 La cosa che ancora mi sfugge è come RE2 funziona con NFA o se usa DFA implicitamente.
-Il NFA di thompson lavora a O(n^2) mentre quello classico lavorerebbe a O(2^n) insomma è esponenziale, questo significa che a lungo termine tende a perdere la mano facilmente.
+l'algoritmo di thompson lavora a O(m * n) dove la complessità è proporzionale alla dimensione dell'input moltiplicata per la dimensione della regex, mentre quello classico lavorerebbe a O(2^n) insomma è esponenziale a causa del backtracking, questo significa che a lungo termine tende a perdere di efficienza o peggio a bloccarsi.
 In più, thompson non usa, durante la costruzione del DFA, il backtracking, questo è stato fatto apposta per evitare eventuali ricadute esponenziali di performance.
 Citando google:
 "No, Thompson’s algorithm (often called Thompson's Construction) does not use backreferences. It was specifically designed to process "pure" or classical regular expressions to guarantee linear-time matching." Questo comporta un'esclusione di complessità nella ricerca, MA impedirebbe all'algortimo di lavorare con un range di possibilità più ampio.
@@ -140,6 +140,55 @@ def parse_string(string_to_check):
 	return python_result
 ```
 
+dopo aver creato gli appositi file bisogna creare il file che fa da ponte, o comunque traduttore per i file cython e il file cpp.
+Questo file ha il compito di far comunicare i file cpp con gli altri, è praticamente il file che creerà la libreria .so visto che siamo su linux, per permettere agli altri file python di utilizzare le funzioni cpp.
+
+Questo è il file setup.py:
+
+```python
+from setuptools import setup, Extension
+from Cython.Build import cythonize
+
+#defining the extension module
+
+ext = Extension(
+	name="my_wrapper",
+	sources=["my_wrapper.pyx", "split_key.cpp"],
+	language="c++",
+	libraries=["re2"],
+	library_dirs=["."],
+)
+
+setup(ext_modules=cythonize(ext))
+
+```
+
+la libreria cythonize mi permette di creare la libreria stessa creando un collegamento tra il file cpp e il file cython
+dopo aver finalmente creato il vero ponte tra i linguaggi dobbiamo compilare il file con:
+
+```bash
+python setup.py build_ext --inplace
+```
+
+da questo scaturisce la libreria che possiamo utilizzare per usare il codice c++. Per utilizzare i metodi cpp, dobbiamo importare la libreria definita in setup.py, il nome è "my_wrapper" quindi nel file dove invocheremo la funzione faremo come segue:
+
+```python
+# importing the cython code we made
+import my_wrapper
+
+string_to_check = "member.submember(2).subsubmember.element(4).finalmember.secret_member(7)"
+
+print("using C++ code to get results")
+parsed_data = my_wrapper.parse_string(string_to_check)
+
+print("retrieved data {}".format(parsed_data))
+```
+
+Notare come abbiamo utilizzato la funzione "parse_string" di my wrapper dichiarata nel file .pxd, essa poi invocherà a sua volta "find_match_for_regex" la funzione cpp.
+
+quindi il ponte sarebbe così:
+file.py ---> prende da file.pyx ----- prende da file.cpp
+
 ## todo for next tasks ✍️
 
-* doing wrapping for python
+* readme review 😨
