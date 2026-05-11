@@ -9,9 +9,9 @@
 // const regex	REGEX_VECTOR = regex(R"(^(\w+)\.element\((\d*?)\)\.*)");
 // const regex	REGEX_ARRAY = regex(R"(^(\w+)\((\d*?)\)\.*)");
 
-const re2::RE2 REGEX_STRUCT(R"(^(\w+)\.*)");
-const re2::RE2 REGEX_VECTOR(R"(^(\w+)\.element\((\d*?)\)\.*)");
-const re2::RE2 REGEX_ARRAY(R"(^(\w+)\((\d*?)\)\.*)");
+const re2::RE2 REGEX_STRUCT(R"del(^(\w+)\.*)del");
+const re2::RE2 REGEX_VECTOR(R"del(^(\w+)\.element\((\d*?)\)\.*)del");
+const re2::RE2 REGEX_ARRAY(R"del(^(\w+)\((\d*?)\)\.*)del");
 
 //ok
 void	build_dict(string &struct_var, string &index_var, vector<unordered_map<string, string>> &detailed_matches)

@@ -51,7 +51,7 @@ int main(void)
 }
 ```
 
-una piccola cosa, se utilizziamo una Raw string dobbiamo definire dei delimitatori insomma qualcosa all'inizio e alla fine della stringa, essa **NON VIENE PRESA** in considerazione dall regex pattern quindi non c'è bisogno di preoccuparsi. come vedi infatti nelle regex che ho dichiarato ho messo le due parantesi tonde (), loro sono i delimitatori che dicono al computer da inizia la raw string al cui interno inserisco la regex.
+Una piccola cosa: la sintassi di base delle Raw String in C++ usa le parentesi tonde per racchiudere il testo, in questo modo: R"(testo)". Queste parentesi non fanno parte della regex, ma sono solo una regola del C++ per segnare l'inizio e la fine del contenuto raw. Nel caso in cui la nostra regex dovesse contenere per sbaglio la sequenza di chiusura standard )", il C++ ci permette di definire un "delimitatore" personalizzato tra le virgolette e le parentesi, ad esempio R"mio_delimitatore(testo)"mio_delimitatore", per evitare errori di compilazione.
 
 ## Problemi nel debugging
 
