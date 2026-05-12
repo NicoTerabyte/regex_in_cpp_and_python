@@ -5,3 +5,12 @@ time of execution python: 0.012270927429199219
 using C++ code to get results
 retrieved data [{'struct': 'member'}, {'index': '2', 'struct': 'submember'}, {'index': '2', 'struct': 'submember'}, {'index': '4', 'struct': 'subsubmember'}, {'index': '4', 'struct': 'subsubmember'}, {'struct': 'finalmember'}, {'index': '7', 'struct': 'secret_member'}, {'index': '7', 'struct': 'secret_member'}]
 time of execution c++: 0.005300283432006836
+
+
+
+all good
+[{'struct': 'member'}, {'struct': 'submember', 'index': '2'}, {'struct': 'subsubmember', 'index': '4'}, {'struct': 'finalmember'}, {'struct': 'secret_member', 'index': '7'}]
+time of execution python: 1.1244924068450928
+using C++ code to get results
+retrieved data [{'struct': 'member'}, {'index': '2', 'struct': 'submember'}, {'index': '2', 'struct': 'submember'}, {'index': '4', 'struct': 'subsubmember'}, {'index': '4', 'struct': 'subsubmember'}, {'struct': 'finalmember'}, {'index': '7', 'struct': 'secret_member'}, {'index': '7', 'struct': 'secret_member'}]
+time of execution c++: 0.5120351314544678

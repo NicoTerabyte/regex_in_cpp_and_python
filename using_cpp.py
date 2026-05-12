@@ -1,5 +1,5 @@
 # importing the cython code we made
-import my_test
+import my_wrapper
 import time
 
 string_to_check = "member.submember(2).subsubmember.element(4).finalmember.secret_member(7)"
@@ -11,7 +11,7 @@ print("using C++ code to get results")
 
 start = time.time()
 while i < 1000:
-	parsed_data = my_test.parse_string(string_to_check)
+	parsed_data = my_wrapper.parse_string(string_to_check)
 	i+=1
 # time.sleep(1)
 end = time.time()
