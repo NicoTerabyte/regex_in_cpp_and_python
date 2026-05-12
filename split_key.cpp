@@ -1,4 +1,5 @@
 #include "split_key.hpp"
+#include <vector>
 
 //! ?p<group> NON ESISTE IN C++
 
@@ -13,24 +14,11 @@ const re2::RE2 REGEX_STRUCT(R"del(^(\w+)\.*)del");
 const re2::RE2 REGEX_VECTOR(R"del(^(\w+)\.element\((\d*?)\)\.*)del");
 const re2::RE2 REGEX_ARRAY(R"del(^(\w+)\((\d*?)\)\.*)del");
 
-//ok
-void	build_dict(string &struct_var, string &index_var, vector<unordered_map<string, string>> &detailed_matches)
+
+
+vector<t_match_data>	find_match_for_regex(string word_to_check)
 {
-	unordered_map<string, string>	tmp_val;
-	//to redo with RE regex
-
-	tmp_val.insert({"struct", struct_var});
-	if (!index_var.empty())
-		tmp_val.insert({"index", index_var});
-
-
-	detailed_matches.push_back(tmp_val);
-}
-
-
-vector<unordered_map<string, string>> find_match_for_regex(string word_to_check)
-{
-	vector<unordered_map<string, string>>	detailed_matches;
+	vector<t_match_data>	detailed_matches;
 	//? a special light string
 	re2::StringPiece	tmp_world_check(word_to_check);
 
@@ -47,17 +35,18 @@ vector<unordered_map<string, string>> find_match_for_regex(string word_to_check)
 			if ((RE2::Consume(&tmp_world_check, REGEX_VECTOR, &struct_var, &index_var)))
 			{
 				//cout<<"Found vector pattern"<<endl;
-				build_dict(struct_var, index_var, detailed_matches);
+				detailed_matches.push_back({struct_var, index_var});
 			}
 			else if ((RE2::Consume(&tmp_world_check, REGEX_ARRAY, &struct_var, &index_var)))
 			{
 				//cout<<"Found array pattern"<<endl;
-				build_dict(struct_var, index_var, detailed_matches);
+				detailed_matches.push_back({struct_var, index_var});
+
 			}
 			else if ((RE2::Consume(&tmp_world_check, REGEX_STRUCT, &struct_var)))
 			{
 				//cout<<"Found struct pattern"<<endl;
-				build_dict(struct_var, empty_index, detailed_matches);
+				detailed_matches.push_back({struct_var, ""});
 			}
 			else
 			{
@@ -78,17 +67,16 @@ vector<unordered_map<string, string>> find_match_for_regex(string word_to_check)
 // {
 // 	string string_for_regex = "member.submember(2).subsubmember.element(4).finalmember";
 // 	// vector<re2::RE2>	list_of_regex = {REGEX_VECTOR, REGEX_ARRAY, REGEX_STRUCT};
-// 	vector<unordered_map<string, string>>	pattern_found;
+// 	vector<t_match_data>	pattern_found;
 // 	pattern_found = find_match_for_regex(string_for_regex);
 
 // 	cout<<"retrieved data ["<<endl;
 // 	for (size_t i = 0; i < pattern_found.size(); i++)
 // 	{
-// 		cout<<"of cell "<<i<<" i print this dict:\n{";
-// 		for (auto it = pattern_found[i].begin(); it != pattern_found[i].end(); it++)
-// 		{
-// 			cout<<"first key: "<<it->first<<" value: \""<<it->second<<"\" ";
-// 		}
+// 		cout<<"{";
+// 		cout<<"struct: "<<pattern_found[i].struct_var<<"  ";
+// 		if (!pattern_found[i].index_var.empty())
+// 			cout<<"index: "<<pattern_found[i].index_var;
 // 		cout<<"}"<<endl;
 // 	}
 // 	cout<<"]"<<endl;
