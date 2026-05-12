@@ -15,7 +15,8 @@
 #include <re2/stringpiece.h>
 
 using namespace std;
-void	build_dict(smatch found_match_array, vector<unordered_map<string, string>> &detailed_matches);
+void	build_dict(string &struct_var, string &index_var, vector<unordered_map<string, string>> &detailed_matches);
+
 // vector<unordered_map<string, string>> find_match_for_regex(string word_to_check, vector<regex> list_of_regex);
 
 vector<unordered_map<string, string>> find_match_for_regex(string word_to_check);

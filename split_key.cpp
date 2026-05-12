@@ -46,22 +46,22 @@ vector<unordered_map<string, string>> find_match_for_regex(string word_to_check)
 			string	empty_index = "";
 			if ((RE2::Consume(&tmp_world_check, REGEX_VECTOR, &struct_var, &index_var)))
 			{
-				cout<<"Found vector pattern"<<endl;
+				//cout<<"Found vector pattern"<<endl;
 				build_dict(struct_var, index_var, detailed_matches);
 			}
 			else if ((RE2::Consume(&tmp_world_check, REGEX_ARRAY, &struct_var, &index_var)))
 			{
-				cout<<"Found array pattern"<<endl;
+				//cout<<"Found array pattern"<<endl;
 				build_dict(struct_var, index_var, detailed_matches);
 			}
 			else if ((RE2::Consume(&tmp_world_check, REGEX_STRUCT, &struct_var)))
 			{
-				cout<<"Found struct pattern"<<endl;
+				//cout<<"Found struct pattern"<<endl;
 				build_dict(struct_var, empty_index, detailed_matches);
 			}
 			else
 			{
-				cout<<"no match found exiting"<<endl;
+				//cout<<"no match found exiting"<<endl;
 				break;
 			}
 		}

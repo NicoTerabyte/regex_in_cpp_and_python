@@ -102,7 +102,7 @@ cython per funzionare deve utilizzare due tipologie di file particolari:
 1. i file pxd (praticamente l'header)
 2. i file pyx (l'implementazione)
 
-il file pxd è dove mettiamo i tipi utilizzati dal file c++ che vogliamo utilizzare praticamente.
+il file pxd è dove mettiamo i tipi utilizzati dal file c++ che vogliamo utilizzare.
 Oltre ai tipi delle variabili utilizzate, inseriamo anche il prototipo della funzione che ci farà da ponte per il codice c++ in python.
 
 ```python
