@@ -1631,6 +1631,67 @@ static const char* const __pyx_f[] = {
 #define __Pyx_CLEAR(r)    do { PyObject* tmp = ((PyObject*)(r)); r = NULL; __Pyx_DECREF(tmp);} while(0)
 #define __Pyx_XCLEAR(r)   do { if((r) != NULL) {PyObject* tmp = ((PyObject*)(r)); r = NULL; __Pyx_DECREF(tmp);}} while(0)
 
+/* MoveIfSupported.proto */
+#if CYTHON_USE_CPP_STD_MOVE
+  #include <utility>
+  #define __PYX_STD_MOVE_IF_SUPPORTED(x) std::move(x)
+#else
+  #define __PYX_STD_MOVE_IF_SUPPORTED(x) x
+#endif
+
+/* IncludeCppStringH.proto (used by decode_cpp_string) */
+#include <string>
+
+/* decode_c_string_utf16.proto (used by decode_c_bytes) */
+static CYTHON_INLINE PyObject *__Pyx_PyUnicode_DecodeUTF16(const char *s, Py_ssize_t size, const char *errors) {
+    int byteorder = 0;
+    return PyUnicode_DecodeUTF16(s, size, errors, &byteorder);
+}
+static CYTHON_INLINE PyObject *__Pyx_PyUnicode_DecodeUTF16LE(const char *s, Py_ssize_t size, const char *errors) {
+    int byteorder = -1;
+    return PyUnicode_DecodeUTF16(s, size, errors, &byteorder);
+}
+static CYTHON_INLINE PyObject *__Pyx_PyUnicode_DecodeUTF16BE(const char *s, Py_ssize_t size, const char *errors) {
+    int byteorder = 1;
+    return PyUnicode_DecodeUTF16(s, size, errors, &byteorder);
+}
+
+/* decode_c_bytes.proto (used by decode_cpp_string) */
+static CYTHON_INLINE PyObject* __Pyx_decode_c_bytes(
+         const char* cstring, Py_ssize_t length, Py_ssize_t start, Py_ssize_t stop,
+         const char* encoding, const char* errors,
+         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors));
+
+/* decode_cpp_string.proto */
+static CYTHON_INLINE PyObject* __Pyx_decode_cpp_string(
+         std::string cppstring, Py_ssize_t start, Py_ssize_t stop,
+         const char* encoding, const char* errors,
+         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors)) {
+    return __Pyx_decode_c_bytes(
+        cppstring.data(), (Py_ssize_t) cppstring.size(), start, stop, encoding, errors, decode_func);
+}
+
+/* ListAppend.proto */
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
+static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
+    PyListObject* L = (PyListObject*) list;
+    Py_ssize_t len = Py_SIZE(list);
+    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
+        Py_INCREF(x);
+        #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030d0000
+        L->ob_item[len] = x;
+        #else
+        PyList_SET_ITEM(list, len, x);
+        #endif
+        __Pyx_SET_SIZE(list, len + 1);
+        return 0;
+    }
+    return PyList_Append(list, x);
+}
+#else
+#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
+#endif
+
 /* TupleAndListFromArray.proto (used by fastcall) */
 #if CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE PyObject* __Pyx_PyList_FromArray(PyObject *const *src, Py_ssize_t n);
@@ -1831,73 +1892,13 @@ static CYTHON_INLINE int __Pyx_ParseKeywords(
 static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
     Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
 
-/* PyObjectFastCallMethod.proto */
-#if CYTHON_VECTORCALL && PY_VERSION_HEX >= 0x03090000
-#define __Pyx_PyObject_FastCallMethod(name, args, nargsf) PyObject_VectorcallMethod(name, args, nargsf, NULL)
-#else
-static PyObject *__Pyx_PyObject_FastCallMethod(PyObject *name, PyObject *const *args, size_t nargsf);
-#endif
+/* ArgTypeTestFunc.export */
+static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
 
-/* MoveIfSupported.proto */
-#if CYTHON_USE_CPP_STD_MOVE
-  #include <utility>
-  #define __PYX_STD_MOVE_IF_SUPPORTED(x) std::move(x)
-#else
-  #define __PYX_STD_MOVE_IF_SUPPORTED(x) x
-#endif
-
-/* IncludeCppStringH.proto (used by decode_cpp_string) */
-#include <string>
-
-/* decode_c_string_utf16.proto (used by decode_c_bytes) */
-static CYTHON_INLINE PyObject *__Pyx_PyUnicode_DecodeUTF16(const char *s, Py_ssize_t size, const char *errors) {
-    int byteorder = 0;
-    return PyUnicode_DecodeUTF16(s, size, errors, &byteorder);
-}
-static CYTHON_INLINE PyObject *__Pyx_PyUnicode_DecodeUTF16LE(const char *s, Py_ssize_t size, const char *errors) {
-    int byteorder = -1;
-    return PyUnicode_DecodeUTF16(s, size, errors, &byteorder);
-}
-static CYTHON_INLINE PyObject *__Pyx_PyUnicode_DecodeUTF16BE(const char *s, Py_ssize_t size, const char *errors) {
-    int byteorder = 1;
-    return PyUnicode_DecodeUTF16(s, size, errors, &byteorder);
-}
-
-/* decode_c_bytes.proto (used by decode_cpp_string) */
-static CYTHON_INLINE PyObject* __Pyx_decode_c_bytes(
-         const char* cstring, Py_ssize_t length, Py_ssize_t start, Py_ssize_t stop,
-         const char* encoding, const char* errors,
-         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors));
-
-/* decode_cpp_string.proto */
-static CYTHON_INLINE PyObject* __Pyx_decode_cpp_string(
-         std::string cppstring, Py_ssize_t start, Py_ssize_t stop,
-         const char* encoding, const char* errors,
-         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors)) {
-    return __Pyx_decode_c_bytes(
-        cppstring.data(), (Py_ssize_t) cppstring.size(), start, stop, encoding, errors, decode_func);
-}
-
-/* ListAppend.proto */
-#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
-static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
-    PyListObject* L = (PyListObject*) list;
-    Py_ssize_t len = Py_SIZE(list);
-    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
-        Py_INCREF(x);
-        #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030d0000
-        L->ob_item[len] = x;
-        #else
-        PyList_SET_ITEM(list, len, x);
-        #endif
-        __Pyx_SET_SIZE(list, len + 1);
-        return 0;
-    }
-    return PyList_Append(list, x);
-}
-#else
-#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
-#endif
+/* ArgTypeTest.proto */
+#define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact)\
+    ((likely(__Pyx_IS_TYPE(obj, type) | (none_allowed && (obj == Py_None)))) ? 1 :\
+        __Pyx__ArgTypeTest(obj, type, name, exact))
 
 /* dict_setdefault.proto (used by FetchCommonType) */
 static CYTHON_INLINE PyObject *__Pyx_PyDict_SetDefault(PyObject *d, PyObject *key, PyObject *default_value);
@@ -2347,6 +2348,7 @@ static int __Pyx_State_RemoveModule(void*);
 /* Module declarations from "libcpp.vector" */
 
 /* Module declarations from "my_wrapper" */
+static PyObject *__pyx_f_10my_wrapper_parse_string(PyObject *, int __pyx_skip_dispatch); /*proto*/
 static std::string __pyx_convert_string_from_py_6libcpp_6string_std__in_string(PyObject *); /*proto*/
 static CYTHON_INLINE PyObject *__pyx_convert_PyObject_string_to_py_6libcpp_6string_std__in_string(std::string const &); /*proto*/
 static CYTHON_INLINE PyObject *__pyx_convert_PyUnicode_string_to_py_6libcpp_6string_std__in_string(std::string const &); /*proto*/
@@ -2387,7 +2389,7 @@ typedef struct {
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_pop;
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_values;
   PyObject *__pyx_codeobj_tab[1];
-  PyObject *__pyx_string_tab[31];
+  PyObject *__pyx_string_tab[25];
 /* #### Code section: module_state_contents ### */
 /* CommonTypesMetaclass.module_state_decls */
 PyTypeObject *__pyx_CommonTypesMetaclassType;
@@ -2429,36 +2431,30 @@ static __pyx_mstatetype * const __pyx_mstate_global = &__pyx_mstate_global_stati
 #endif
 /* #### Code section: constant_name_defines ### */
 #define __pyx_kp_u_ __pyx_string_tab[0]
-#define __pyx_kp_u_my_wrapper_pyx __pyx_string_tab[1]
-#define __pyx_kp_u_utf_8 __pyx_string_tab[2]
-#define __pyx_n_u_Pyx_PyDict_NextRef __pyx_string_tab[3]
-#define __pyx_n_u_asyncio_coroutines __pyx_string_tab[4]
-#define __pyx_n_u_byte_string __pyx_string_tab[5]
-#define __pyx_n_u_c_result __pyx_string_tab[6]
-#define __pyx_n_u_cline_in_traceback __pyx_string_tab[7]
-#define __pyx_n_u_encode __pyx_string_tab[8]
-#define __pyx_n_u_func __pyx_string_tab[9]
-#define __pyx_n_u_i __pyx_string_tab[10]
-#define __pyx_n_u_index __pyx_string_tab[11]
-#define __pyx_n_u_is_coroutine __pyx_string_tab[12]
-#define __pyx_n_u_item __pyx_string_tab[13]
-#define __pyx_n_u_items __pyx_string_tab[14]
-#define __pyx_n_u_main __pyx_string_tab[15]
-#define __pyx_n_u_module __pyx_string_tab[16]
-#define __pyx_n_u_my_wrapper __pyx_string_tab[17]
-#define __pyx_n_u_name __pyx_string_tab[18]
-#define __pyx_n_u_parse_string __pyx_string_tab[19]
-#define __pyx_n_u_pop __pyx_string_tab[20]
-#define __pyx_n_u_python_result __pyx_string_tab[21]
-#define __pyx_n_u_qualname __pyx_string_tab[22]
-#define __pyx_n_u_set_name __pyx_string_tab[23]
-#define __pyx_n_u_setdefault __pyx_string_tab[24]
-#define __pyx_n_u_string_to_check __pyx_string_tab[25]
-#define __pyx_n_u_struct __pyx_string_tab[26]
-#define __pyx_n_u_test __pyx_string_tab[27]
-#define __pyx_n_u_tmp_dict __pyx_string_tab[28]
-#define __pyx_n_u_values __pyx_string_tab[29]
-#define __pyx_kp_b_iso88591_gQa_1_U_q_Q_j_Kwaq_T_ZvQ_1Kt_WA __pyx_string_tab[30]
+#define __pyx_kp_u_Note_that_Cython_is_deliberately __pyx_string_tab[1]
+#define __pyx_kp_u_add_note __pyx_string_tab[2]
+#define __pyx_kp_u_my_wrapper_pyx __pyx_string_tab[3]
+#define __pyx_n_u_Pyx_PyDict_NextRef __pyx_string_tab[4]
+#define __pyx_n_u_asyncio_coroutines __pyx_string_tab[5]
+#define __pyx_n_u_cline_in_traceback __pyx_string_tab[6]
+#define __pyx_n_u_func __pyx_string_tab[7]
+#define __pyx_n_u_index __pyx_string_tab[8]
+#define __pyx_n_u_is_coroutine __pyx_string_tab[9]
+#define __pyx_n_u_items __pyx_string_tab[10]
+#define __pyx_n_u_main __pyx_string_tab[11]
+#define __pyx_n_u_module __pyx_string_tab[12]
+#define __pyx_n_u_my_wrapper __pyx_string_tab[13]
+#define __pyx_n_u_name __pyx_string_tab[14]
+#define __pyx_n_u_parse_string __pyx_string_tab[15]
+#define __pyx_n_u_pop __pyx_string_tab[16]
+#define __pyx_n_u_qualname __pyx_string_tab[17]
+#define __pyx_n_u_set_name __pyx_string_tab[18]
+#define __pyx_n_u_setdefault __pyx_string_tab[19]
+#define __pyx_n_u_string_to_check __pyx_string_tab[20]
+#define __pyx_n_u_struct __pyx_string_tab[21]
+#define __pyx_n_u_test __pyx_string_tab[22]
+#define __pyx_n_u_values __pyx_string_tab[23]
+#define __pyx_kp_b_iso88591_gQa_1_U_q_Q_j_Kwaq_T_ZvQ_1Kt_WA __pyx_string_tab[24]
 /* #### Code section: module_state_clear ### */
 #if CYTHON_USE_MODULE_STATE
 static CYTHON_SMALL_CODE int __pyx_m_clear(PyObject *m) {
@@ -2474,7 +2470,7 @@ static CYTHON_SMALL_CODE int __pyx_m_clear(PyObject *m) {
   __Pyx_State_RemoveModule(NULL);
   #endif
   for (int i=0; i<1; ++i) { Py_CLEAR(clear_module_state->__pyx_codeobj_tab[i]); }
-  for (int i=0; i<31; ++i) { Py_CLEAR(clear_module_state->__pyx_string_tab[i]); }
+  for (int i=0; i<25; ++i) { Py_CLEAR(clear_module_state->__pyx_string_tab[i]); }
 /* #### Code section: module_state_clear_contents ### */
 /* CommonTypesMetaclass.module_state_clear */
 Py_CLEAR(clear_module_state->__pyx_CommonTypesMetaclassType);
@@ -2498,7 +2494,7 @@ static CYTHON_SMALL_CODE int __pyx_m_traverse(PyObject *m, visitproc visit, void
   __Pyx_VISIT_CONST(traverse_module_state->__pyx_empty_bytes);
   __Pyx_VISIT_CONST(traverse_module_state->__pyx_empty_unicode);
   for (int i=0; i<1; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_codeobj_tab[i]); }
-  for (int i=0; i<31; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_string_tab[i]); }
+  for (int i=0; i<25; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_string_tab[i]); }
 /* #### Code section: module_state_traverse_contents ### */
 /* CommonTypesMetaclass.module_state_traverse */
 Py_VISIT(traverse_module_state->__pyx_CommonTypesMetaclassType);
@@ -2514,7 +2510,7 @@ return 0;
 
 /* "string.from_py":12
  *     cdef const char* __Pyx_PyObject_AsStringAndSize(object, Py_ssize_t*) except NULL
- *
+ * 
  * @cname("__pyx_convert_string_from_py_6libcpp_6string_std__in_string")             # <<<<<<<<<<<<<<
  * cdef string __pyx_convert_string_from_py_6libcpp_6string_std__in_string(object o) except *:
  *     cdef Py_ssize_t length = 0
@@ -2544,7 +2540,7 @@ static std::string __pyx_convert_string_from_py_6libcpp_6string_std__in_string(P
  *     cdef Py_ssize_t length = 0
  *     cdef const char* data = __Pyx_PyObject_AsStringAndSize(o, &length)             # <<<<<<<<<<<<<<
  *     return string(data, <size_t> length)
- *
+ * 
 */
   __pyx_t_1 = __Pyx_PyObject_AsStringAndSize(__pyx_v_o, (&__pyx_v_length)); if (unlikely(__pyx_t_1 == ((void *)NULL))) __PYX_ERR(1, 15, __pyx_L1_error)
   __pyx_v_data = __pyx_t_1;
@@ -2553,7 +2549,7 @@ static std::string __pyx_convert_string_from_py_6libcpp_6string_std__in_string(P
  *     cdef Py_ssize_t length = 0
  *     cdef const char* data = __Pyx_PyObject_AsStringAndSize(o, &length)
  *     return string(data, <size_t> length)             # <<<<<<<<<<<<<<
- *
+ * 
 */
   try {
     __pyx_t_2 = std::string(__pyx_v_data, ((size_t)__pyx_v_length));
@@ -2566,7 +2562,7 @@ static std::string __pyx_convert_string_from_py_6libcpp_6string_std__in_string(P
 
   /* "string.from_py":12
  *     cdef const char* __Pyx_PyObject_AsStringAndSize(object, Py_ssize_t*) except NULL
- *
+ * 
  * @cname("__pyx_convert_string_from_py_6libcpp_6string_std__in_string")             # <<<<<<<<<<<<<<
  * cdef string __pyx_convert_string_from_py_6libcpp_6string_std__in_string(object o) except *:
  *     cdef Py_ssize_t length = 0
@@ -2582,7 +2578,7 @@ static std::string __pyx_convert_string_from_py_6libcpp_6string_std__in_string(P
 
 /* "string.to_py":31
  *     cdef object __Pyx_PyObject_FromStringAndSize(const char*, size_t)
- *
+ * 
  * @cname("__pyx_convert_PyObject_string_to_py_6libcpp_6string_std__in_string")             # <<<<<<<<<<<<<<
  * cdef inline object __pyx_convert_PyObject_string_to_py_6libcpp_6string_std__in_string(const string& s):
  *     if s.size() > <size_t> PY_SSIZE_T_MAX:
@@ -2642,7 +2638,7 @@ static CYTHON_INLINE PyObject *__pyx_convert_PyObject_string_to_py_6libcpp_6stri
 
   /* "string.to_py":31
  *     cdef object __Pyx_PyObject_FromStringAndSize(const char*, size_t)
- *
+ * 
  * @cname("__pyx_convert_PyObject_string_to_py_6libcpp_6string_std__in_string")             # <<<<<<<<<<<<<<
  * cdef inline object __pyx_convert_PyObject_string_to_py_6libcpp_6string_std__in_string(const string& s):
  *     if s.size() > <size_t> PY_SSIZE_T_MAX:
@@ -2661,7 +2657,7 @@ static CYTHON_INLINE PyObject *__pyx_convert_PyObject_string_to_py_6libcpp_6stri
 
 /* "string.to_py":39
  *     cdef object __Pyx_PyUnicode_FromStringAndSize(const char*, size_t)
- *
+ * 
  * @cname("__pyx_convert_PyUnicode_string_to_py_6libcpp_6string_std__in_string")             # <<<<<<<<<<<<<<
  * cdef inline object __pyx_convert_PyUnicode_string_to_py_6libcpp_6string_std__in_string(const string& s):
  *     if s.size() > <size_t> PY_SSIZE_T_MAX:
@@ -2721,7 +2717,7 @@ static CYTHON_INLINE PyObject *__pyx_convert_PyUnicode_string_to_py_6libcpp_6str
 
   /* "string.to_py":39
  *     cdef object __Pyx_PyUnicode_FromStringAndSize(const char*, size_t)
- *
+ * 
  * @cname("__pyx_convert_PyUnicode_string_to_py_6libcpp_6string_std__in_string")             # <<<<<<<<<<<<<<
  * cdef inline object __pyx_convert_PyUnicode_string_to_py_6libcpp_6string_std__in_string(const string& s):
  *     if s.size() > <size_t> PY_SSIZE_T_MAX:
@@ -2740,7 +2736,7 @@ static CYTHON_INLINE PyObject *__pyx_convert_PyUnicode_string_to_py_6libcpp_6str
 
 /* "string.to_py":47
  *     cdef object __Pyx_PyBytes_FromStringAndSize(const char*, size_t)
- *
+ * 
  * @cname("__pyx_convert_PyBytes_string_to_py_6libcpp_6string_std__in_string")             # <<<<<<<<<<<<<<
  * cdef inline object __pyx_convert_PyBytes_string_to_py_6libcpp_6string_std__in_string(const string& s):
  *     if s.size() > <size_t> PY_SSIZE_T_MAX:
@@ -2800,7 +2796,7 @@ static CYTHON_INLINE PyObject *__pyx_convert_PyBytes_string_to_py_6libcpp_6strin
 
   /* "string.to_py":47
  *     cdef object __Pyx_PyBytes_FromStringAndSize(const char*, size_t)
- *
+ * 
  * @cname("__pyx_convert_PyBytes_string_to_py_6libcpp_6string_std__in_string")             # <<<<<<<<<<<<<<
  * cdef inline object __pyx_convert_PyBytes_string_to_py_6libcpp_6string_std__in_string(const string& s):
  *     if s.size() > <size_t> PY_SSIZE_T_MAX:
@@ -2819,7 +2815,7 @@ static CYTHON_INLINE PyObject *__pyx_convert_PyBytes_string_to_py_6libcpp_6strin
 
 /* "string.to_py":55
  *     cdef object __Pyx_PyByteArray_FromStringAndSize(const char*, size_t)
- *
+ * 
  * @cname("__pyx_convert_PyByteArray_string_to_py_6libcpp_6string_std__in_string")             # <<<<<<<<<<<<<<
  * cdef inline object __pyx_convert_PyByteArray_string_to_py_6libcpp_6string_std__in_string(const string& s):
  *     if s.size() > <size_t> PY_SSIZE_T_MAX:
@@ -2876,7 +2872,7 @@ static CYTHON_INLINE PyObject *__pyx_convert_PyByteArray_string_to_py_6libcpp_6s
 
   /* "string.to_py":55
  *     cdef object __Pyx_PyByteArray_FromStringAndSize(const char*, size_t)
- *
+ * 
  * @cname("__pyx_convert_PyByteArray_string_to_py_6libcpp_6string_std__in_string")             # <<<<<<<<<<<<<<
  * cdef inline object __pyx_convert_PyByteArray_string_to_py_6libcpp_6string_std__in_string(const string& s):
  *     if s.size() > <size_t> PY_SSIZE_T_MAX:
@@ -2895,14 +2891,192 @@ static CYTHON_INLINE PyObject *__pyx_convert_PyByteArray_string_to_py_6libcpp_6s
 
 /* "my_wrapper.pyx":6
  * from libcpp.vector cimport vector
- *
- * def parse_string(string_to_check):             # <<<<<<<<<<<<<<
+ * 
+ * cpdef list parse_string(str string_to_check):             # <<<<<<<<<<<<<<
  * 	# c++ works with bytes string, when using std::string
  * 	byte_string = string_to_check.encode("utf-8")
 */
 
+static PyObject *__pyx_pw_10my_wrapper_1parse_string(PyObject *__pyx_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyObject *__pyx_f_10my_wrapper_parse_string(PyObject *__pyx_v_string_to_check, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  PyObject *__pyx_v_byte_string = NULL;
+  std::vector<t_match_data>  __pyx_v_c_result;
+  PyObject *__pyx_v_python_result = NULL;
+  t_match_data __pyx_v_item;
+  std::vector<t_match_data> ::size_type __pyx_v_i;
+  PyObject *__pyx_v_tmp_dict = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  std::string __pyx_t_2;
+  std::vector<t_match_data> ::size_type __pyx_t_3;
+  std::vector<t_match_data> ::size_type __pyx_t_4;
+  std::vector<t_match_data> ::size_type __pyx_t_5;
+  PyObject *__pyx_t_6 = NULL;
+  int __pyx_t_7;
+  int __pyx_t_8;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("parse_string", 0);
+
+  /* "my_wrapper.pyx":8
+ * cpdef list parse_string(str string_to_check):
+ * 	# c++ works with bytes string, when using std::string
+ * 	byte_string = string_to_check.encode("utf-8")             # <<<<<<<<<<<<<<
+ * 	cdef vector[t_match_data] c_result = find_match_for_regex(byte_string)
+ * 
+*/
+  if (unlikely(__pyx_v_string_to_check == Py_None)) {
+    PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%.30s'", "encode");
+    __PYX_ERR(0, 8, __pyx_L1_error)
+  }
+  __pyx_t_1 = PyUnicode_AsUTF8String(__pyx_v_string_to_check); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 8, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_byte_string = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "my_wrapper.pyx":9
+ * 	# c++ works with bytes string, when using std::string
+ * 	byte_string = string_to_check.encode("utf-8")
+ * 	cdef vector[t_match_data] c_result = find_match_for_regex(byte_string)             # <<<<<<<<<<<<<<
+ * 
+ * 	python_result = []
+*/
+  __pyx_t_2 = __pyx_convert_string_from_py_6libcpp_6string_std__in_string(__pyx_v_byte_string); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L1_error)
+  __pyx_v_c_result = find_match_for_regex(__PYX_STD_MOVE_IF_SUPPORTED(__pyx_t_2));
+
+  /* "my_wrapper.pyx":11
+ * 	cdef vector[t_match_data] c_result = find_match_for_regex(byte_string)
+ * 
+ * 	python_result = []             # <<<<<<<<<<<<<<
+ * 
+ * 	cdef t_match_data item
+*/
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_python_result = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "my_wrapper.pyx":14
+ * 
+ * 	cdef t_match_data item
+ * 	for i in range(c_result.size()):             # <<<<<<<<<<<<<<
+ * 		item = c_result[i]
+ * 		tmp_dict = {"struct": item.struct_var.decode("utf-8")}
+*/
+  __pyx_t_3 = __pyx_v_c_result.size();
+  __pyx_t_4 = __pyx_t_3;
+  for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
+    __pyx_v_i = __pyx_t_5;
+
+    /* "my_wrapper.pyx":15
+ * 	cdef t_match_data item
+ * 	for i in range(c_result.size()):
+ * 		item = c_result[i]             # <<<<<<<<<<<<<<
+ * 		tmp_dict = {"struct": item.struct_var.decode("utf-8")}
+ * 
+*/
+    __pyx_v_item = (__pyx_v_c_result[__pyx_v_i]);
+
+    /* "my_wrapper.pyx":16
+ * 	for i in range(c_result.size()):
+ * 		item = c_result[i]
+ * 		tmp_dict = {"struct": item.struct_var.decode("utf-8")}             # <<<<<<<<<<<<<<
+ * 
+ * 		if not item.index_var.empty():
+*/
+    __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 16, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_6 = __Pyx_decode_cpp_string(__pyx_v_item.struct_var, 0, PY_SSIZE_T_MAX, NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 16, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_struct, __pyx_t_6) < (0)) __PYX_ERR(0, 16, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_tmp_dict, ((PyObject*)__pyx_t_1));
+    __pyx_t_1 = 0;
+
+    /* "my_wrapper.pyx":18
+ * 		tmp_dict = {"struct": item.struct_var.decode("utf-8")}
+ * 
+ * 		if not item.index_var.empty():             # <<<<<<<<<<<<<<
+ * 			tmp_dict["index"] = item.index_var.decode("utf-8")
+ * 		python_result.append(tmp_dict)
+*/
+    __pyx_t_7 = (!__pyx_v_item.index_var.empty());
+    if (__pyx_t_7) {
+
+      /* "my_wrapper.pyx":19
+ * 
+ * 		if not item.index_var.empty():
+ * 			tmp_dict["index"] = item.index_var.decode("utf-8")             # <<<<<<<<<<<<<<
+ * 		python_result.append(tmp_dict)
+ * 
+*/
+      __pyx_t_1 = __Pyx_decode_cpp_string(__pyx_v_item.index_var, 0, PY_SSIZE_T_MAX, NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      if (unlikely((PyDict_SetItem(__pyx_v_tmp_dict, __pyx_mstate_global->__pyx_n_u_index, __pyx_t_1) < 0))) __PYX_ERR(0, 19, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+      /* "my_wrapper.pyx":18
+ * 		tmp_dict = {"struct": item.struct_var.decode("utf-8")}
+ * 
+ * 		if not item.index_var.empty():             # <<<<<<<<<<<<<<
+ * 			tmp_dict["index"] = item.index_var.decode("utf-8")
+ * 		python_result.append(tmp_dict)
+*/
+    }
+
+    /* "my_wrapper.pyx":20
+ * 		if not item.index_var.empty():
+ * 			tmp_dict["index"] = item.index_var.decode("utf-8")
+ * 		python_result.append(tmp_dict)             # <<<<<<<<<<<<<<
+ * 
+ * 	return python_result
+*/
+    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_python_result, __pyx_v_tmp_dict); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 20, __pyx_L1_error)
+  }
+
+  /* "my_wrapper.pyx":22
+ * 		python_result.append(tmp_dict)
+ * 
+ * 	return python_result             # <<<<<<<<<<<<<<
+*/
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_python_result);
+  __pyx_r = __pyx_v_python_result;
+  goto __pyx_L0;
+
+  /* "my_wrapper.pyx":6
+ * from libcpp.vector cimport vector
+ * 
+ * cpdef list parse_string(str string_to_check):             # <<<<<<<<<<<<<<
+ * 	# c++ works with bytes string, when using std::string
+ * 	byte_string = string_to_check.encode("utf-8")
+*/
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_AddTraceback("my_wrapper.parse_string", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_byte_string);
+  __Pyx_XDECREF(__pyx_v_python_result);
+  __Pyx_XDECREF(__pyx_v_tmp_dict);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
 /* Python wrapper */
-static PyObject *__pyx_pw_10my_wrapper_1parse_string(PyObject *__pyx_self,
+static PyObject *__pyx_pw_10my_wrapper_1parse_string(PyObject *__pyx_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -2910,7 +3084,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_10my_wrapper_1parse_string = {"parse_string", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_10my_wrapper_1parse_string, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_10my_wrapper_1parse_string(PyObject *__pyx_self,
+static PyObject *__pyx_pw_10my_wrapper_1parse_string(PyObject *__pyx_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -2961,7 +3135,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
       values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
       if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 6, __pyx_L3_error)
     }
-    __pyx_v_string_to_check = values[0];
+    __pyx_v_string_to_check = ((PyObject*)values[0]);
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
@@ -2976,187 +3150,47 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_string_to_check), (&PyUnicode_Type), 1, "string_to_check", 1))) __PYX_ERR(0, 6, __pyx_L1_error)
   __pyx_r = __pyx_pf_10my_wrapper_parse_string(__pyx_self, __pyx_v_string_to_check);
 
   /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
   for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
     Py_XDECREF(values[__pyx_temp]);
   }
+  goto __pyx_L7_cleaned_up;
+  __pyx_L0:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __pyx_L7_cleaned_up:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
 static PyObject *__pyx_pf_10my_wrapper_parse_string(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_string_to_check) {
-  PyObject *__pyx_v_byte_string = NULL;
-  std::vector<t_match_data>  __pyx_v_c_result;
-  PyObject *__pyx_v_python_result = NULL;
-  t_match_data __pyx_v_item;
-  std::vector<t_match_data> ::size_type __pyx_v_i;
-  PyObject *__pyx_v_tmp_dict = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  size_t __pyx_t_3;
-  std::string __pyx_t_4;
-  std::vector<t_match_data> ::size_type __pyx_t_5;
-  std::vector<t_match_data> ::size_type __pyx_t_6;
-  std::vector<t_match_data> ::size_type __pyx_t_7;
-  int __pyx_t_8;
-  int __pyx_t_9;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("parse_string", 0);
-
-  /* "my_wrapper.pyx":8
- * def parse_string(string_to_check):
- * 	# c++ works with bytes string, when using std::string
- * 	byte_string = string_to_check.encode("utf-8")             # <<<<<<<<<<<<<<
- * 	cdef vector[t_match_data] c_result = find_match_for_regex(byte_string)
- *
-*/
-  __pyx_t_2 = __pyx_v_string_to_check;
-  __Pyx_INCREF(__pyx_t_2);
-  __pyx_t_3 = 0;
-  {
-    PyObject *__pyx_callargs[2] = {__pyx_t_2, __pyx_mstate_global->__pyx_kp_u_utf_8};
-    __pyx_t_1 = __Pyx_PyObject_FastCallMethod((PyObject*)__pyx_mstate_global->__pyx_n_u_encode, __pyx_callargs+__pyx_t_3, (2-__pyx_t_3) | (1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
-    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 8, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-  }
-  __pyx_v_byte_string = __pyx_t_1;
-  __pyx_t_1 = 0;
-
-  /* "my_wrapper.pyx":9
- * 	# c++ works with bytes string, when using std::string
- * 	byte_string = string_to_check.encode("utf-8")
- * 	cdef vector[t_match_data] c_result = find_match_for_regex(byte_string)             # <<<<<<<<<<<<<<
- *
- * 	python_result = []
-*/
-  __pyx_t_4 = __pyx_convert_string_from_py_6libcpp_6string_std__in_string(__pyx_v_byte_string); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L1_error)
-  __pyx_v_c_result = find_match_for_regex(__PYX_STD_MOVE_IF_SUPPORTED(__pyx_t_4));
-
-  /* "my_wrapper.pyx":11
- * 	cdef vector[t_match_data] c_result = find_match_for_regex(byte_string)
- *
- * 	python_result = []             # <<<<<<<<<<<<<<
- *
- * 	cdef t_match_data item
-*/
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_v_python_result = ((PyObject*)__pyx_t_1);
-  __pyx_t_1 = 0;
-
-  /* "my_wrapper.pyx":14
- *
- * 	cdef t_match_data item
- * 	for i in range(c_result.size()):             # <<<<<<<<<<<<<<
- * 		item = c_result[i]
- * 		tmp_dict = {"struct": item.struct_var.decode("utf-8")}
-*/
-  __pyx_t_5 = __pyx_v_c_result.size();
-  __pyx_t_6 = __pyx_t_5;
-  for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
-    __pyx_v_i = __pyx_t_7;
-
-    /* "my_wrapper.pyx":15
- * 	cdef t_match_data item
- * 	for i in range(c_result.size()):
- * 		item = c_result[i]             # <<<<<<<<<<<<<<
- * 		tmp_dict = {"struct": item.struct_var.decode("utf-8")}
- *
-*/
-    __pyx_v_item = (__pyx_v_c_result[__pyx_v_i]);
-
-    /* "my_wrapper.pyx":16
- * 	for i in range(c_result.size()):
- * 		item = c_result[i]
- * 		tmp_dict = {"struct": item.struct_var.decode("utf-8")}             # <<<<<<<<<<<<<<
- *
- * 		if not item.index_var.empty():
-*/
-    __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 16, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_decode_cpp_string(__pyx_v_item.struct_var, 0, PY_SSIZE_T_MAX, NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 16, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_t_1, __pyx_mstate_global->__pyx_n_u_struct, __pyx_t_2) < (0)) __PYX_ERR(0, 16, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_XDECREF_SET(__pyx_v_tmp_dict, ((PyObject*)__pyx_t_1));
-    __pyx_t_1 = 0;
-
-    /* "my_wrapper.pyx":18
- * 		tmp_dict = {"struct": item.struct_var.decode("utf-8")}
- *
- * 		if not item.index_var.empty():             # <<<<<<<<<<<<<<
- * 			tmp_dict["index"] = item.index_var.decode("utf-8")
- * 		python_result.append(tmp_dict)
-*/
-    __pyx_t_8 = (!__pyx_v_item.index_var.empty());
-    if (__pyx_t_8) {
-
-      /* "my_wrapper.pyx":19
- *
- * 		if not item.index_var.empty():
- * 			tmp_dict["index"] = item.index_var.decode("utf-8")             # <<<<<<<<<<<<<<
- * 		python_result.append(tmp_dict)
- *
-*/
-      __pyx_t_1 = __Pyx_decode_cpp_string(__pyx_v_item.index_var, 0, PY_SSIZE_T_MAX, NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      if (unlikely((PyDict_SetItem(__pyx_v_tmp_dict, __pyx_mstate_global->__pyx_n_u_index, __pyx_t_1) < 0))) __PYX_ERR(0, 19, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-      /* "my_wrapper.pyx":18
- * 		tmp_dict = {"struct": item.struct_var.decode("utf-8")}
- *
- * 		if not item.index_var.empty():             # <<<<<<<<<<<<<<
- * 			tmp_dict["index"] = item.index_var.decode("utf-8")
- * 		python_result.append(tmp_dict)
-*/
-    }
-
-    /* "my_wrapper.pyx":20
- * 		if not item.index_var.empty():
- * 			tmp_dict["index"] = item.index_var.decode("utf-8")
- * 		python_result.append(tmp_dict)             # <<<<<<<<<<<<<<
- *
- * 	return python_result
-*/
-    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_python_result, __pyx_v_tmp_dict); if (unlikely(__pyx_t_9 == ((int)-1))) __PYX_ERR(0, 20, __pyx_L1_error)
-  }
-
-  /* "my_wrapper.pyx":22
- * 		python_result.append(tmp_dict)
- *
- * 	return python_result             # <<<<<<<<<<<<<<
-*/
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_v_python_result);
-  __pyx_r = __pyx_v_python_result;
+  __pyx_t_1 = __pyx_f_10my_wrapper_parse_string(__pyx_v_string_to_check, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
   goto __pyx_L0;
-
-  /* "my_wrapper.pyx":6
- * from libcpp.vector cimport vector
- *
- * def parse_string(string_to_check):             # <<<<<<<<<<<<<<
- * 	# c++ works with bytes string, when using std::string
- * 	byte_string = string_to_check.encode("utf-8")
-*/
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
   __Pyx_AddTraceback("my_wrapper.parse_string", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_byte_string);
-  __Pyx_XDECREF(__pyx_v_python_result);
-  __Pyx_XDECREF(__pyx_v_tmp_dict);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -3474,7 +3508,7 @@ static CYTHON_SMALL_CODE int __pyx_pymod_exec_my_wrapper(PyObject *__pyx_pyinit_
         Py_FatalError("failed to import 'refnanny' module");
   }
   #endif
-
+  
 __Pyx_RefNannySetupContext("PyInit_my_wrapper", 0);
   __Pyx_init_runtime_version();
   if (__Pyx_check_binary_version(__PYX_LIMITED_VERSION_HEX, __Pyx_get_runtime_version(), CYTHON_COMPILING_IN_LIMITED_API) < (0)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -3512,8 +3546,8 @@ __Pyx_RefNannySetupContext("PyInit_my_wrapper", 0);
 
   /* "my_wrapper.pyx":6
  * from libcpp.vector cimport vector
- *
- * def parse_string(string_to_check):             # <<<<<<<<<<<<<<
+ * 
+ * cpdef list parse_string(str string_to_check):             # <<<<<<<<<<<<<<
  * 	# c++ works with bytes string, when using std::string
  * 	byte_string = string_to_check.encode("utf-8")
 */
@@ -3527,7 +3561,7 @@ __Pyx_RefNannySetupContext("PyInit_my_wrapper", 0);
 
   /* "my_wrapper.pyx":1
  * # the implementer of the cython code             # <<<<<<<<<<<<<<
- *
+ * 
  * from my_wrapper cimport find_match_for_regex, t_match_data
 */
   __pyx_t_2 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -3595,26 +3629,34 @@ static int __Pyx_InitCachedConstants(__pyx_mstatetype *__pyx_mstate) {
 static int __Pyx_InitConstants(__pyx_mstatetype *__pyx_mstate) {
   CYTHON_UNUSED_VAR(__pyx_mstate);
   {
-    const struct { const unsigned int length: 7; } index[] = {{1},{14},{5},{20},{18},{11},{8},{18},{6},{8},{1},{5},{13},{4},{5},{8},{10},{10},{8},{12},{3},{13},{12},{12},{10},{15},{6},{8},{8},{6},{113}};
-    #if (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (319 bytes) */
-const char* const cstring = "x\332E\217\261N\3030\020\206I\240U\021\022U%\006\326\016t\243R7\324\005!\261UB\024\201\220XN\256smM\023\333\211\3556\231\350\350\321c\306\216y\204>\006c\307<\002\217\200+\n\234\364\237\316\366\377\371\356n\223\002V\031\221\022\263\276,r\243\247\3277\000\217E\356u\317\250\206\007\314\365\023N\211*8e\242OE&\214f\034\325\244\320\010Jg\214\317(d\250L\254i\354\037\200q\320\031\2418!t\201\234\212\010\001\246\206S\000\306x\20490\005\177\3370\215\311^\n !\236\364\221\210\310\304\236\371\237\014\200\223\304\337H\222\251\337\236RHY\350\271\340\207\336\000\251!\361\217\017@\241>0\276\212\374\370\336\361\303\201\026@\347H\027\376h\374~\240Q\355s\"!\362\373.IlP\255\203:h\333\217r\266\031o\310.\350}\366\206\333\356vP\007\035\327\371j\036\205\315\365\213\275\262\251k\225\215r\274\013O\355\245\353\270\356.<\267\357\345I9\332\254*R\245u\330X?\333\013\373\346\226\336t|f\007v\344t9\334\274Vw\225\247\332v\345\210K\353\240e\203ob\343\235m";
-    PyObject *data = __Pyx_DecompressString(cstring, 319, 1);
+    const struct { const unsigned int length: 8; } index[] = {{1},{179},{8},{14},{20},{18},{18},{8},{5},{13},{5},{8},{10},{10},{8},{12},{3},{12},{12},{10},{15},{6},{8},{6},{113}};
+    #if (CYTHON_COMPRESS_STRINGS) == 2 /* compression: bz2 (469 bytes) */
+const char* const cstring = "BZh91AY&SY)\241\235\010\000\000&\377\373\377i\244@c\203$P\257)v\220\277\377\377\340\300@@@@@\000@@@@\000@\0000\001k\n\260\212\231\224\365\014F\201\240\032\032h\000\000\320\323A\241\352mLO(5Si\247\25024i4jzOI\352\017I\221\2202b\032\030F\021\247\224\032\2314&\211\212f\247\2025\001\223M\000\000\000\003\324\321\351\0012\201\344\034\306\021\006\001\014\304\220\232\221&\262@ \020(\016\025\373\257\266\351[\037\301Jxp\214 Y,\230\211\352\224\252\342\325\327\235)\205N\243\273\024\223b\202\270-(\301\r\363\370\371\264\310\255\247X\233\250\035\322\t\372j\"\030\250\317\361Z\352+\211\343\013\036\205\t)\232\306\244+/\003\240En;\261\370~=_Xv\341\032c@\314\324\231y\265l\236Qtr]A\233g\030YD\017&\210\n\267\313\023\013\026\004\242:\247!\002\354u\032$nyM\207yN*\304\361\003rL\212w\315\373c\024\275Y!U\362\023[~D\245\341\253\032M\020.Z]\032\026F\201\022\316!Z\0328\325\316\260\265\340[Tr0;e\262\tb\3002\311\360v&)N\265\007-0\210\302\222\363\201\241\323\000\234\254\321D\226#\250\031o\242\244\021\0320\3541:\0358\030\037T\260\251\311\neXc\010\262\324\036\271\010\231\031\261\360\001$\023\007\t\240A\340\031#\2367jlD\335\023\242\227\003\312A\204\264\304\026\023\333(\205v\301\244\333T\235\035z.\321\3701}\030\240\324\020\006F\242;\224+\375c\2226\306uP\205\327\"\n)bH)\226\302l\177\027rE8P\220)\241\235\010";
+    PyObject *data = __Pyx_DecompressString(cstring, 469, 2);
     if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
     const char* const bytes = __Pyx_PyBytes_AsString(data);
     #if !CYTHON_ASSUME_SAFE_MACROS
     if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
     #endif
-    #else /* compression: none (391 bytes) */
-const char* const bytes = "?my_wrapper.pyxutf-8__Pyx_PyDict_NextRefasyncio.coroutinesbyte_stringc_resultcline_in_tracebackencode__func__iindex_is_coroutineitemitems__main____module__my_wrapper__name__parse_stringpoppython_result__qualname____set_name__setdefaultstring_to_checkstruct__test__tmp_dictvalues\200\001\340\001\017\210\177\230g\240Q\240a\330\001&\320&:\270!\2701\340\001\021\220\021\360\006\000\002\006\200U\210%\210q\220\010\230\005\230Q\330\002\t\210\030\220\021\220!\330\002\016\210j\230\004\230K\240w\250a\250q\340\002\005\200T\210\024\210Z\220v\230Q\330\003\013\2101\210K\220t\230:\240W\250A\250Q\330\002\017\210w\220a\220q\340\001\010\210\001";
+    #elif (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (412 bytes) */
+const char* const cstring = "x\332M\2201k[1\020\307\373\334&\244\024\032\014\035:*C\223\251\206@\206\222\245\224\266\201\022\010NH)t9\316zg[\211,=K'\333o\252G\215o|\243G\177\204|\214\216\036\375\021\372\021z&%T\303\351t\372\375\357\376\322\307+\317\244x\214\254>\327<\366N\231\250J\262f@\001\231l\255\"\007\243\231\302\016r\252\377\265\377\376\354\303\231BW\252@w\2449\252\230\006\332b\214\024\225\037\252A2\226\215S\\W\024{\352\333P\325>)GT*\366\252\022\356\177\001\217\311\251H\274K\324\t:\347\031\331x\007\"7nt\242J\023d\210\231\321N}\2016R\017\313\022\204\243I\r\363\200UE\241W\325\013\200\276\204~\375E\334\302\025-\370\206\206\030k\247\215\357i\037|\022S\024\265\225\010F\372\007\3244@}\0170LN\203\324JZ\200\211\360\004\033\031\021\001&(\270\254\211/\223%\331\237\306\0028\234H\245\302\020\tv\037\345F\225\257\000\246\t\355\343\025\200<\356\037&Y)\236\222\345G\024\330\203\036\223\276\227c\022\323\300\024%\316\320&\212\313b[\034\346_\355hu\275\302Mq\374\373\370\374\341\350\341t[t\233\356\237\375g\235\375\345\367\374.O\233\203v\257\275\336t^\346\267M\2679\332t^\347\273\366E{\271\232\257q=\335v\366\226\267\371M\376\331\314\004z\376*\237\346\313\206\333\363\325\217\365\247\265\250\016\363\274\301f\272-\016r\361\027\017\326\312\213";
+    PyObject *data = __Pyx_DecompressString(cstring, 412, 1);
+    if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
+    const char* const bytes = __Pyx_PyBytes_AsString(data);
+    #if !CYTHON_ASSUME_SAFE_MACROS
+    if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
+    #endif
+    #else /* compression: none (522 bytes) */
+const char* const bytes = "?Note that Cython is deliberately stricter than PEP-484 and rejects subclasses of builtin types. If you need to pass subclasses then set the 'annotation_typing' directive to False.add_notemy_wrapper.pyx__Pyx_PyDict_NextRefasyncio.coroutinescline_in_traceback__func__index_is_coroutineitems__main____module__my_wrapper__name__parse_stringpop__qualname____set_name__setdefaultstring_to_checkstruct__test__values\200\001\340\001\017\210\177\230g\240Q\240a\330\001&\320&:\270!\2701\340\001\021\220\021\360\006\000\002\006\200U\210%\210q\220\010\230\005\230Q\330\002\t\210\030\220\021\220!\330\002\016\210j\230\004\230K\240w\250a\250q\340\002\005\200T\210\024\210Z\220v\230Q\330\003\013\2101\210K\220t\230:\240W\250A\250Q\330\002\017\210w\220a\220q\340\001\010\210\001";
     PyObject *data = NULL;
     CYTHON_UNUSED_VAR(__Pyx_DecompressString);
     #endif
     PyObject **stringtab = __pyx_mstate->__pyx_string_tab;
     Py_ssize_t pos = 0;
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 24; i++) {
       Py_ssize_t bytes_length = index[i].length;
       PyObject *string = PyUnicode_DecodeUTF8(bytes + pos, bytes_length, NULL);
-      if (likely(string) && i >= 3) PyUnicode_InternInPlace(&string);
+      if (likely(string) && i >= 4) PyUnicode_InternInPlace(&string);
       if (unlikely(!string)) {
         Py_XDECREF(data);
         __PYX_ERR(0, 1, __pyx_L1_error)
@@ -3622,7 +3664,7 @@ const char* const bytes = "?my_wrapper.pyxutf-8__Pyx_PyDict_NextRefasyncio.corou
       stringtab[i] = string;
       pos += bytes_length;
     }
-    for (int i = 30; i < 31; i++) {
+    for (int i = 24; i < 25; i++) {
       Py_ssize_t bytes_length = index[i].length;
       PyObject *string = PyBytes_FromStringAndSize(bytes + pos, bytes_length);
       stringtab[i] = string;
@@ -3633,14 +3675,14 @@ const char* const bytes = "?my_wrapper.pyxutf-8__Pyx_PyDict_NextRefasyncio.corou
       }
     }
     Py_XDECREF(data);
-    for (Py_ssize_t i = 0; i < 31; i++) {
+    for (Py_ssize_t i = 0; i < 25; i++) {
       if (unlikely(PyObject_Hash(stringtab[i]) == -1)) {
         __PYX_ERR(0, 1, __pyx_L1_error)
       }
     }
     #if CYTHON_IMMORTAL_CONSTANTS
     {
-      PyObject **table = stringtab + 30;
+      PyObject **table = stringtab + 24;
       for (Py_ssize_t i=0; i<1; ++i) {
         #if CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
         #if PY_VERSION_HEX < 0x030E0000
@@ -3667,7 +3709,7 @@ typedef struct {
     unsigned int argcount : 1;
     unsigned int num_posonly_args : 1;
     unsigned int num_kwonly_args : 1;
-    unsigned int nlocals : 3;
+    unsigned int nlocals : 1;
     unsigned int flags : 10;
     unsigned int first_line : 3;
 } __Pyx_PyCode_New_function_description;
@@ -3686,8 +3728,8 @@ static int __Pyx_CreateCodeObjects(__pyx_mstatetype *__pyx_mstate) {
   PyObject* tuple_dedup_map = PyDict_New();
   if (unlikely(!tuple_dedup_map)) return -1;
   {
-    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 7, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 6};
-    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_string_to_check, __pyx_mstate->__pyx_n_u_byte_string, __pyx_mstate->__pyx_n_u_c_result, __pyx_mstate->__pyx_n_u_python_result, __pyx_mstate->__pyx_n_u_item, __pyx_mstate->__pyx_n_u_i, __pyx_mstate->__pyx_n_u_tmp_dict};
+    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 1, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 6};
+    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_string_to_check};
     __pyx_mstate_global->__pyx_codeobj_tab[0] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_my_wrapper_pyx, __pyx_mstate->__pyx_n_u_parse_string, __pyx_mstate->__pyx_kp_b_iso88591_gQa_1_U_q_Q_j_Kwaq_T_ZvQ_1Kt_WA, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[0])) goto bad;
   }
   Py_DECREF(tuple_dedup_map);
@@ -3701,12 +3743,12 @@ static int __Pyx_CreateCodeObjects(__pyx_mstatetype *__pyx_mstate) {
 static int __Pyx_InitGlobals(void) {
   /* PythonCompatibility.init */
   if (likely(__Pyx_init_co_variables() == 0)); else
-
+  
   if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 1, __pyx_L1_error)
 
   /* CommonTypesMetaclass.init */
   if (likely(__pyx_CommonTypesMetaclass_init(__pyx_m) == 0)); else
-
+  
   if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 1, __pyx_L1_error)
 
   /* CachedMethodType.init */
@@ -3720,12 +3762,12 @@ static int __Pyx_InitGlobals(void) {
       }
   } // error handling follows
   #endif
-
+  
   if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 1, __pyx_L1_error)
 
   /* CythonFunctionShared.init */
   if (likely(__pyx_CyFunction_init(__pyx_m) == 0)); else
-
+  
   if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 1, __pyx_L1_error)
 
   return 0;
@@ -3766,6 +3808,33 @@ end:
     return (__Pyx_RefNannyAPIStruct *)r;
 }
 #endif
+
+/* decode_c_bytes (used by decode_cpp_string) */
+static CYTHON_INLINE PyObject* __Pyx_decode_c_bytes(
+         const char* cstring, Py_ssize_t length, Py_ssize_t start, Py_ssize_t stop,
+         const char* encoding, const char* errors,
+         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors)) {
+    if (unlikely((start < 0) | (stop < 0))) {
+        if (start < 0) {
+            start += length;
+            if (start < 0)
+                start = 0;
+        }
+        if (stop < 0)
+            stop += length;
+    }
+    if (stop > length)
+        stop = length;
+    if (unlikely(stop <= start))
+        return __Pyx_NewRef(__pyx_mstate_global->__pyx_empty_unicode);
+    length = stop - start;
+    cstring += start;
+    if (decode_func) {
+        return decode_func(cstring, length, errors);
+    } else {
+        return PyUnicode_Decode(cstring, length, encoding, errors);
+    }
+}
 
 /* TupleAndListFromArray (used by fastcall) */
 #if !CYTHON_COMPILING_IN_CPYTHON && CYTHON_METH_FASTCALL
@@ -4806,44 +4875,52 @@ static void __Pyx_RaiseArgtupleInvalid(
                  (num_expected == 1) ? "" : "s", num_found);
 }
 
-/* PyObjectFastCallMethod */
-#if !CYTHON_VECTORCALL || PY_VERSION_HEX < 0x03090000
-static PyObject *__Pyx_PyObject_FastCallMethod(PyObject *name, PyObject *const *args, size_t nargsf) {
-    PyObject *result;
-    PyObject *attr = PyObject_GetAttr(args[0], name);
-    if (unlikely(!attr))
-        return NULL;
-    result = __Pyx_PyObject_FastCall(attr, args+1, nargsf - 1);
-    Py_DECREF(attr);
-    return result;
-}
-#endif
-
-/* decode_c_bytes (used by decode_cpp_string) */
-static CYTHON_INLINE PyObject* __Pyx_decode_c_bytes(
-         const char* cstring, Py_ssize_t length, Py_ssize_t start, Py_ssize_t stop,
-         const char* encoding, const char* errors,
-         PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors)) {
-    if (unlikely((start < 0) | (stop < 0))) {
-        if (start < 0) {
-            start += length;
-            if (start < 0)
-                start = 0;
+/* ArgTypeTestFunc (used by ArgTypeTest) */
+static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact)
+{
+    __Pyx_TypeName type_name;
+    __Pyx_TypeName obj_type_name;
+    PyObject *extra_info = __pyx_mstate_global->__pyx_empty_unicode;
+    int from_annotation_subclass = 0;
+    if (unlikely(!type)) {
+        PyErr_SetString(PyExc_SystemError, "Missing type object");
+        return 0;
+    }
+    else if (!exact) {
+        if (likely(__Pyx_TypeCheck(obj, type))) return 1;
+    } else if (exact == 2) {
+        if (__Pyx_TypeCheck(obj, type)) {
+            from_annotation_subclass = 1;
+            extra_info = __pyx_mstate_global->__pyx_kp_u_Note_that_Cython_is_deliberately;
         }
-        if (stop < 0)
-            stop += length;
     }
-    if (stop > length)
-        stop = length;
-    if (unlikely(stop <= start))
-        return __Pyx_NewRef(__pyx_mstate_global->__pyx_empty_unicode);
-    length = stop - start;
-    cstring += start;
-    if (decode_func) {
-        return decode_func(cstring, length, errors);
-    } else {
-        return PyUnicode_Decode(cstring, length, encoding, errors);
+    type_name = __Pyx_PyType_GetFullyQualifiedName(type);
+    obj_type_name = __Pyx_PyType_GetFullyQualifiedName(Py_TYPE(obj));
+    PyErr_Format(PyExc_TypeError,
+        "Argument '%.200s' has incorrect type (expected " __Pyx_FMT_TYPENAME
+        ", got " __Pyx_FMT_TYPENAME ")"
+#if __PYX_LIMITED_VERSION_HEX < 0x030C0000
+        "%s%U"
+#endif
+        , name, type_name, obj_type_name
+#if __PYX_LIMITED_VERSION_HEX < 0x030C0000
+        , (from_annotation_subclass ? ". " : ""), extra_info
+#endif
+        );
+#if __PYX_LIMITED_VERSION_HEX >= 0x030C0000
+    if (exact == 2 && from_annotation_subclass) {
+        PyObject *res;
+        PyObject *vargs[2];
+        vargs[0] = PyErr_GetRaisedException();
+        vargs[1] = extra_info;
+        res = PyObject_VectorcallMethod(__pyx_mstate_global->__pyx_kp_u_add_note, vargs, 2, NULL);
+        Py_XDECREF(res);
+        PyErr_SetRaisedException(vargs[0]);
     }
+#endif
+    __Pyx_DECREF_TypeName(type_name);
+    __Pyx_DECREF_TypeName(obj_type_name);
+    return 0;
 }
 
 /* dict_setdefault (used by FetchCommonType) */

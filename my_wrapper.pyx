@@ -3,7 +3,7 @@
 from my_wrapper cimport find_match_for_regex, t_match_data
 from libcpp.vector cimport vector
 
-def parse_string(string_to_check):
+cpdef list parse_string(str string_to_check):
 	# c++ works with bytes string, when using std::string
 	byte_string = string_to_check.encode("utf-8")
 	cdef vector[t_match_data] c_result = find_match_for_regex(byte_string)
